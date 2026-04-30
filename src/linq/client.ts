@@ -31,3 +31,14 @@ export async function sendMessage(to: string, chatId: string, text: string) {
     console.error("[linq] send failed:", err.response?.data ?? err.message);
   }
 }
+
+export async function sendTypingIndicator(chatId: string) {
+  try {
+    await linq.post(`/chats/${chatId}/typing-indicators`, {
+      from,
+    });
+    console.log("[linq] typing indicator sent");
+  } catch (err: any) {
+    console.error("[linq] typing indicator failed:", err.response?.data ?? err.message);
+  }
+}

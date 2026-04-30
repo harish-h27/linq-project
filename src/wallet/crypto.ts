@@ -1,6 +1,6 @@
 import CryptoJS from "crypto-js";
 
-const KEY = process.env.WALLET_ENCRYPTION_KEY;
+const KEY = process.env.WALLET_ENCRYPTION_KEY as string;
 
 if (!KEY) {
   console.error("[wallet] WALLET_ENCRYPTION_KEY not set");

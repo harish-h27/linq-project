@@ -1,4 +1,5 @@
 import pg from "pg";
+import CryptoJS from "crypto-js";
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
