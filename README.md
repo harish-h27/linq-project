@@ -82,16 +82,3 @@ reminders              list active reminders
 yes / no               confirm or cancel
 help                   show all commands
 
-
-
-curl -X POST https://api.linqapp.com/api/partner/v3/webhook-subscriptions \
-  -H "Authorization: Bearer e367af7f-02d0-5a4a-82ca-c72339ddd754" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "target_url": "https://aba4-73-112-124-208.ngrok-free.app/webhook",
-    "subscribed_events": [
-      "message.received",
-      "message.sent",
-      "message.delivered"
-    ]
-  }
