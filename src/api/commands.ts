@@ -4,6 +4,7 @@ import { saveNickname, findNickname, findNicknameByAddress, listNicknames, delet
 import { savePendingConfirmation, getPendingConfirmation, deletePendingConfirmation } from "../db/confirmations.js";
 import { ethers } from "ethers";
 import { query } from "../db/client.js";
+import { saveReminder, listReminders } from "../db/reminders.js";
 
 export async function handleCommand(fromHandle: string, chatId: string, text: string) {
   const t = text.trim().toLowerCase();
@@ -45,7 +46,7 @@ export async function handleCommand(fromHandle: string, chatId: string, text: st
     return;
   }
 
-  if (t === "help" || t === "commands" || t === "?") {
+if (t === "help" || t === "commands" || t === "?") {
     await sendMessage(fromHandle, chatId, [
       "available commands:\n",
       "wallet",
@@ -63,6 +64,12 @@ export async function handleCommand(fromHandle: string, chatId: string, text: st
       "  add wallet <address>",
       "  remove wallet <name>",
       "  wallets",
+      "",
+      "reminders",
+      "  remind me in 30s to <message>",
+      "  remind me in 5m to <message>",
+      "  remind me in 1h to <message>",
+      "  reminders",
       "",
       "confirm",
       "  yes / no",
@@ -181,6 +188,38 @@ export async function handleCommand(fromHandle: string, chatId: string, text: st
     await sendMessage(fromHandle, chatId,
       `confirm transaction\n\namount: ${amount} ETH\nto: ${target}\naddress: ${toAddress}\n\nreply yes to confirm or no to cancel.\nexpires in 2 minutes.`
     );
+    return;
+  }
+  const remindMatch = raw.match(/^remind me in (\d+)\s*(s|sec|seconds?|m|min|minutes?|h|hr|hours?)\s+(?:to\s+)?(.+)$/i);
+  if (remindMatch) {
+    const amount = parseInt(remindMatch[1]!, 10);
+    const unit = remindMatch[2]!.toLowerCase();
+    const message = remindMatch[3]!.trim();
+
+    let ms = 0;
+    if (unit.startsWith("s")) ms = amount * 1000;
+    else if (unit.startsWith("m")) ms = amount * 60 * 1000;
+    else if (unit.startsWith("h")) ms = amount * 3600 * 1000;
+
+    const fireAt = new Date(Date.now() + ms);
+    await saveReminder(fromHandle, chatId, message, fireAt);
+
+    await sendMessage(fromHandle, chatId,
+      `reminder set.\n\n"${message}" at ${fireAt.toLocaleTimeString()}`
+    );
+    return;
+  }
+
+  if (t === "reminders") {
+    const reminders = await listReminders(fromHandle);
+    if (!reminders.length) {
+      await sendMessage(fromHandle, chatId, "no active reminders.");
+      return;
+    }
+    const list = (reminders as any[])
+      .map((r) => `${r.message} at ${new Date(r.fire_at).toLocaleTimeString()}`)
+      .join("\n");
+    await sendMessage(fromHandle, chatId, `active reminders:\n\n${list}`);
     return;
   }
 
